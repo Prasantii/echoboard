@@ -46,16 +46,45 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-slide-in: slideIn 0.5s forwards;
+  --animate-slide-out: slideOut 0.5s forwards;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      width: 0;
+    }
+
+    to {
+      opacity: 1;
+      width: 384;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      /* transform: translateY(20px); */
+      opacity: 1;
+      width: 384;
+    }
+
+    to {
+      /* transform: translateY(0); */
+      opacity: 0;
+      width: 100;
+    }
+  }
 }
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(28.502% 0.00003 271.152);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklab(59.862% -0.08266 0.00084);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -121,9 +150,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
