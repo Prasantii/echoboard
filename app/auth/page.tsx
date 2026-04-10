@@ -37,7 +37,7 @@ export default function LoginPage() {
     <div className="flex h-full w-full items-center justify-center bg-slate-50 p-6">
       <Card className="w-full max-w-md shadow-lg border-primary/10">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Welcome Back to EchoBoard</CardTitle>
+          <CardTitle className="text-3xl font-bold">Welcome Back to EchoBoard!!</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
