@@ -14,6 +14,7 @@ export type Feedback = {
     ai_sentiment_score?: number | undefined,
     ai_tags?: string[] | undefined,
     ai_urgency?: string | undefined,
+    user_id?: string,
 }
 
 export type SentimentOverviewData = {

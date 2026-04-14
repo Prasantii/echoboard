@@ -83,7 +83,7 @@ export default async function Index() {
     }
 
     return (
-        <div className="flex-1 w-full flex flex-col gap-8 items-center p-8 m-4">
+        <div className="flex-1 flex flex-col gap-8 items-center p-8 m-4">
             <header className="w-full max-w-7xl flex justify-between items-center pb-8 border-b">
                 <h1 className="text-4xl font-bold text-slate-900">EchoBoard</h1>
                 {/* We will add Auth button here on Day 5 */}

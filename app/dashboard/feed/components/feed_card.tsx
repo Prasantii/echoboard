@@ -50,13 +50,17 @@ export default function FeedCard({ data, onDelete }: { data: Feedback, onDelete?
                     <DropdownMenuContent>
                         <DropdownMenuGroup>
                             <DropdownMenuLabel>Options</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={(e) => e.stopPropagation()} className='text-destructive'>
-                                <MessageDialog
+                            <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete!();
+                            }} className='text-destructive'>
+                                <span><Trash2 /></span>{' '}Delete
+                                {/* <MessageDialog
                                     title='Delete Feed'
                                     message='Are you sure you want to delete this feed? This action can not be undone.'
                                     onSubmit={onDelete}
                                     submitLabel='Delete'
-                                />
+                                /> */}
 
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
@@ -103,59 +107,6 @@ export default function FeedCard({ data, onDelete }: { data: Feedback, onDelete?
 }
 
 
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-
-export function MessageDialog({ title, message, onSubmit, submitLabel }: {
-    title?: string,
-    message: string,
-    onSubmit?: () => void,
-    submitLabel?: string,
-}) {
-    const handleSubmit = (e: MouseEvent) => {
-        e.stopPropagation();
-        if (onSubmit) {
-            onSubmit();
-        }
-    }
-
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild >
-                <Button variant='ghost' className='w-full' onClick={(e) => e.stopPropagation()}><Trash2 />Delete</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-sm">
-                <DialogHeader>
-                    {title && <DialogTitle>{title}</DialogTitle>}
-                    <DialogDescription>
-                        {message}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline" onClick={(e) => e.stopPropagation()}>Cancel</Button>
-                    </DialogClose>
-                    {(onSubmit && submitLabel) &&
-                        <Button onClick={(e) => {
-                            e.stopPropagation();
-                            onSubmit();
-                        }}
-                            type="submit">{submitLabel}
-                        </Button>}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 
 function FeedbackDetail({ feedback }: { feedback: Feedback }) {
@@ -230,6 +181,7 @@ function FeedbackDetail({ feedback }: { feedback: Feedback }) {
             </div>
 
             <p>"{feedback.content}"</p>
+            <p>Customer E-Mail: {feedback.customer_email ?? '-'}</p>
 
             {notAnalyzed &&
                 <Button disabled={isLoading} onClick={handleAnalyze}>

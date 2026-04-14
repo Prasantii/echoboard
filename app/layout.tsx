@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import QueryProvider from "@/providers/query-provider";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -30,16 +31,20 @@ export default function RootLayout({
       lang="en"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="h-screen max-h-screen flex flex-col">
-        <div className="flex grow">
-          {children}
-        </div>
+      <body className="h-screen max-h-screen flex flex-col overflow-hidden">
+        <QueryProvider>
 
-        <div className="w-full border border-t-gray-300 p-4">
-          <div className="w-fit mx-auto text-xs text-gray-500">
-            © ECHOBOARD 2026. All Rights Reserved.
+          <div className="flex flex-1 overflow-y-auto">
+            {children}
           </div>
-        </div>
+
+          <div className="w-full shrink-0 border border-t-gray-300 p-4">
+            <div className="w-fit mx-auto text-xs text-gray-500">
+              © ECHOBOARD 2026. All Rights Reserved.
+            </div>
+          </div>
+
+        </QueryProvider>
       </body>
     </html>
   );

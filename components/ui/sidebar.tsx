@@ -67,30 +67,30 @@ export default function Sidebar() {
     const visibilityStyle = '';
 
     return (
-        <div className="absolute md:relative h-full flex flex-col bg-gray-300">
+        <div className="absolute md:relative h-full flex flex-col bg-gray-300 z-50">
 
             <div>
-                <Button
-                    className="absolute z-10 right-0 top-2.5"
-                    onClick={handleShowSidebar}
-                    variant='link'>
-                    <Menu />
-                </Button>
+                <div className="flex flex-row justify-between items-center  pt-4">
+                    {isShow && <h1 className="inline-flex pl-6 gap-1 items-center font-medium text-xl text-center text-primary">
+                        ECHOBOARD
+                        {/* <span><Image src='/logo.svg' height={24} width={24} alt="logo" /></span> */}
+                    </h1>}
+
+                    <Button
+                        className=""
+                        onClick={handleShowSidebar}
+                        variant='link'>
+                        <Menu />
+                    </Button>
+
+
+                </div>
 
             </div>
 
             <div className={`h-full flex flex-col  px-2 py-4 min-w-60 max-w-lg justify-between ${isShow ? '' : 'hidden'}`}>
 
                 <div className='flex flex-col gap-8'>
-                    <div className="flex flex-row justify-between items-center">
-                        <h1 className="inline-flex gap-1 items-center font-medium text-xl text-center text-primary">
-                            ECHOBOARD
-                            {/* <span><Image src='/logo.svg' height={24} width={24} alt="logo" /></span> */}
-                        </h1>
-
-
-
-                    </div>
 
                     {/* Menu */}
                     <ul className="flex flex-col gap-2">

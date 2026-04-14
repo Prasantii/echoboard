@@ -29,7 +29,7 @@ const status = [
 ];
 export default function Feed() {
     const { showPane, detail } = useDetailPane();
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<{
         feedback?: Feedback[] | null,
         error?: {
@@ -44,22 +44,20 @@ export default function Feed() {
         query?: string | undefined,
     }>({});
 
+    useFeedbackRealtime();
 
-    useEffect(() => {
-        fetchData();
-        console.log("FETCHING DATA", params);
-    }, [params])
+    const { data: feedback, isLoading, error } = useQuery({
+        queryKey: ['feedback', params], // This is the ID for the cache
+        queryFn: async () => {
+            const { feedback, error } = await fetchFeeds({
+                params: params,
+            });
 
-    const fetchData = async () => {
-        setIsLoading(true);
-        const fetched = await fetchFeeds({
-            params: params
-        });
+            if (error) throw error
+            return feedback;
+        },
+    });
 
-        setData(fetched);
-        setIsLoading(false);
-
-    }
 
     const handleSetParams = (
         newParams
@@ -90,21 +88,18 @@ export default function Feed() {
 
     }
 
-    const { feedback, error } = data;
+    // const { feedback, error } = data;
 
     if (error) {
         return (
-            <div className="flex self-center w-full h-full">Error({error.code}) : {error.message}</div>
+            <div className="flex self-center w-full h-full">Error({error.name}) : {error.message}</div>
         );
     }
 
     return (
         <div className="flex flex-col p-8 gap-6 bg-gray-50">
             {/* Page Title */}
-            <div className="flex flex-row justify-between">
-                <h1 className="font-bold text-3xl">Feedback Feed</h1>
-                <DialogNoCloseButton />
-            </div>
+            <h1 className="font-bold text-3xl">Feedback Feed</h1>
 
             {/* Filter */}
             <div className="flex flex-wrap gap-4 p-2 rounded-md bg-white border border-gray-300">
@@ -199,7 +194,7 @@ export default function Feed() {
                 {isLoading ?
                     <LoadingComponent />
                     :
-                    (feedback && feedback.length > 0 ?
+                    (feedback && Array.isArray(feedback) && feedback.length > 0 ?
                         <DataListComponent feedback={feedback} />
                         :
                         <NotFoundMessage />)
@@ -221,29 +216,35 @@ function LoadingComponent() {
 }
 
 function DataListComponent({ feedback }: { feedback: Feedback[] }) {
-    const router = useRouter();
-    // const { showDialog } = useDialog();
+    const deleteMutation = useDeleteFeedback();
+    // const router = useRouter();
+    const { showDialog, closeDialog } = useDialog();
 
-    useFeedbackRealtime();
+    // useFeedbackRealtime();
 
-    const handleDelete = async ({ id, content }: Feedback) => {
-        // showDialog({
-        //     title: 'Delete Feed',
-        //     body: <div>Are you sure to delete this content "{content}"</div>
-        // })
+    const deleteAlert = async ({ id, content }: Feedback) => {
+        showDialog({
+            title: 'Delete Feed',
+            message: `Are you sure you want to delete this content?\n"${content}"`,
+            confirmButton: (
+                <Button
+                    variant='destructive'
+                    onClick={() => handleDelete(id!)}>
+                    Delete
+                </Button>)
+        })
+    }
 
-        const { error } = await deleteFeed(id!);
-        if (error) {
-            return;
-        }
-        router.refresh();
+    const handleDelete = (id: string) => {
+        deleteMutation.mutate(id);
+        closeDialog();
     }
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.isArray(feedback) && feedback.map((data, index) => {
                 return (
-                    <FeedCard key={index} data={data} onDelete={() => handleDelete(data)} />
+                    <FeedCard key={index} data={data} onDelete={() => deleteAlert(data)} />
                 );
             })}
 
@@ -252,9 +253,8 @@ function DataListComponent({ feedback }: { feedback: Feedback[] }) {
 
 }
 
-'use client'
 
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/utils/supabase/client'
 
 export function useFeedbackRealtime() {
@@ -288,6 +288,48 @@ export function useFeedbackRealtime() {
 }
 
 
+
+export function useDeleteFeedback() {
+    const queryClient = useQueryClient();
+    const supabase = createClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const { error } = await deleteFeed(id);
+            console.log("ERRR", error);
+            if (error) throw error;
+        },
+
+        // --- THIS IS THE OPTIMISTIC PART ---
+        onMutate: async (id) => {
+            // 1. Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ['feedback'] });
+
+            // 2. Snapshot the previous value (for rollback)
+            const previousFeedback = queryClient.getQueryData(['feedback']);
+
+            // 3. Optimistically update the cache by removing the item
+            queryClient.setQueryData(['feedback'], (old: any) =>
+                old?.filter((item: any) => item.id !== id)
+            );
+
+            // 4. Return the context object with the snapshotted value
+            return { previousFeedback };
+        },
+
+        // If the mutation fails, use the context we returned above
+        onError: (err, id, context) => {
+            queryClient.setQueryData(['feedback'], context?.previousFeedback);
+            console.error("Delete failed, rolling back!", err);
+        },
+
+        // Always refetch after error or success to keep server in sync
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['feedback'] });
+        },
+    });
+}
+
 function NotFoundMessage() {
     return (
         <div className="w-full h-full flex flex-col gap-4 items-center justify-center pt-24 text-gray-400">
@@ -298,6 +340,9 @@ function NotFoundMessage() {
 }
 
 function AddFeedsPane() {
+    const supabase = createClient(); // Initialize client
+    const queryClient = useQueryClient();
+
     const { closePane } = useDetailPane();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<AppError>();
@@ -315,6 +360,8 @@ function AddFeedsPane() {
 
     const handleSave = async (e: FormData) => {
         setIsLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+
 
         if (data.length < 1) {
             const error = { code: 400, message: "No Data Added." }
@@ -327,6 +374,7 @@ function AddFeedsPane() {
                 return {
                     ...e,
                     id: undefined,
+                    user_id: user?.id,
                 }
             })
         );
@@ -338,6 +386,8 @@ function AddFeedsPane() {
         }
         setData([]);
         closePane();
+        queryClient.invalidateQueries({ queryKey: ['feedback'] });
+
     }
 
     const handleOnChange = (id: string, feedback: Feedback) => {
@@ -437,32 +487,4 @@ function AddForm({ onChange, onRemove }: { onChange: (feedback: Feedback) => voi
 
         </div>
     );
-}
-
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-
-export function DialogNoCloseButton() {
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline">No Close Button</Button>
-            </DialogTrigger>
-            <DialogContent showCloseButton={false}>
-                <DialogHeader>
-                    <DialogTitle>No Close Button</DialogTitle>
-                    <DialogDescription>
-                        This dialog doesn&apos;t have a close button in the top-right
-                        corner.
-                    </DialogDescription>
-                </DialogHeader>
-            </DialogContent>
-        </Dialog>
-    )
 }

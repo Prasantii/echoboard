@@ -3,6 +3,8 @@ import { create } from 'zustand';
 
 interface DialogDetail {
     title: string,
+    message?: string,
+    confirmButton?: React.ReactNode,
     body?: React.ReactNode,
 }
 

@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -72,7 +71,7 @@
     to {
       /* transform: translateY(0); */
       opacity: 0;
-      width: 100;
+      width: 0;
     }
   }
 }
