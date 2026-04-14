@@ -1,6 +1,11 @@
+export type AppError = {
+    code: number,
+    message: string,
+}
+
 export type Feedback = {
-    id: string,
-    content: string,
+    id?: string,
+    content?: string,
     source?: string | undefined,
     status?: string | undefined,
     customer_email?: string | undefined,

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "./button";
 import { useSidebar } from "@/store/sidebar.store";
 import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
 
 export default function Sidebar() {
     const supabase = createClient();
@@ -82,9 +83,9 @@ export default function Sidebar() {
 
                 <div className='flex flex-col gap-8'>
                     <div className="flex flex-row justify-between items-center">
-                        <h1 className="inline-flex gap-2 font-medium text-xl text-center text-primary">
-                            <span><BugPlayIcon /></span>
+                        <h1 className="inline-flex gap-1 items-center font-medium text-xl text-center text-primary">
                             ECHOBOARD
+                            {/* <span><Image src='/logo.svg' height={24} width={24} alt="logo" /></span> */}
                         </h1>
 
 

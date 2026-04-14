@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Label } from 'recharts';
 import { ChartConfig, ChartContainer } from '../../../components/ui/chart';
 
 export default function FeedbackCategories({ data }: { data: any[] }) {
@@ -39,7 +39,7 @@ export default function FeedbackCategories({ data }: { data: any[] }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Top Feedback Categories</CardTitle>
+                <CardTitle>Top Feedback Tags</CardTitle>
             </CardHeader>
             <CardContent className="h-75">
                 <ChartContainer
@@ -52,6 +52,35 @@ export default function FeedbackCategories({ data }: { data: any[] }) {
                             paddingAngle={5}
                             dataKey="value"
                         >
+                            <Label
+                                content={({ viewBox }) => {
+                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                        return (
+                                            <text
+                                                x={viewBox.cx}
+                                                y={viewBox.cy}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                            >
+                                                <tspan
+                                                    x={viewBox.cx}
+                                                    y={viewBox.cy}
+                                                    className="fill-foreground text-lg font-bold"
+                                                >
+                                                    Top 5
+                                                </tspan>
+                                                <tspan
+                                                    x={viewBox.cx}
+                                                    y={(viewBox.cy || 0) + 16}
+                                                    className="font-normal text-xs fill-muted-foreground"
+                                                >
+                                                    Tags
+                                                </tspan>
+                                            </text>
+                                        )
+                                    }
+                                }}
+                            />
 
                             {/* {chartData.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -7,6 +7,7 @@ export async function fetchFeeds({ params }: {
         source?: string | undefined,
         sentiment?: string | undefined,
         status?: string | undefined,
+        query?: string | undefined,
     }
 }): Promise<{
     feedback: Feedback[] | null,
@@ -22,6 +23,8 @@ export async function fetchFeeds({ params }: {
         let query = supabase
             .from('feedback')
             .select('*');
+
+        if (params?.query) query = query.ilike('content', `%${params.query}%`);
 
         if (params?.status) query = query.eq('status', params.status);
         if (params?.sentiment) {
@@ -85,6 +88,63 @@ export async function changeStatus(id: string, status: string) {
             error: {
                 code: 500,
                 message: "Error resolving feed: " + e
+            },
+        }
+    }
+}
+
+export async function addNewFeed(newData: Feedback[]) {
+    try {
+        const supabase = await createClient();
+
+        // Fetch data from Supabase server-side
+        const { data: feedback, error } = await supabase
+            .from('feedback')
+            .insert(newData)
+            .select();
+
+        if (error) {
+            throw Error(error.message);
+        }
+
+        return {
+            feedback: feedback
+        };
+
+    } catch (e) {
+        return {
+            error: {
+                code: 500,
+                message: "Error adding feeds: " + e
+            },
+        }
+    }
+}
+
+export async function deleteFeed(id: string) {
+    try {
+        const supabase = await createClient();
+
+        // Fetch data from Supabase server-side
+        const { data: feedback, error } = await supabase
+            .from('feedback')
+            .delete()
+            .eq('id', id)
+            .select();
+
+        if (error) {
+            throw Error(error.message);
+        }
+
+        return {
+            feedback: feedback
+        };
+
+    } catch (e) {
+        return {
+            error: {
+                code: 500,
+                message: "Error deleting feed: " + e
             },
         }
     }

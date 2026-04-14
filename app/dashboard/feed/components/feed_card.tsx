@@ -1,7 +1,7 @@
 "use client"
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Feedback } from "@/constants/app_type";
-import { AppWindow, Bug, Check, Ellipsis, Sparkles } from "lucide-react";
+import { AppWindow, Bug, Check, Ellipsis, Sparkles, Trash2 } from "lucide-react";
 import Chip from "./chip";
 import { useDetailPane } from "@/store/detail_pane.store";
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,21 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '
 import { Label, Pie, PieChart } from 'recharts';
 import { useState } from 'react';
 import { titleCase } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { changeStatus } from '@/lib/actions/feed';
+import { redirect, useRouter } from 'next/navigation';
+import { changeStatus, deleteFeed } from '@/lib/actions/feed';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export default function FeedCard({ data }: { data: Feedback }) {
+export default function FeedCard({ data, onDelete }: { data: Feedback, onDelete?: () => void }) {
+    const router = useRouter();
+    const [showMenu, setShowMenu] = useState(false);
     const { showPane, detail } = useDetailPane();
 
     const handleShowDetail = () => {
@@ -23,16 +34,37 @@ export default function FeedCard({ data }: { data: Feedback }) {
     }
 
     return (
-        <Card onClick={handleShowDetail} className="p-3 rounded-md gap-y-2">
+        <Card onClick={handleShowDetail} className="relative p-3 rounded-md gap-y-2">
             <div className="flex flex-row justify-between items-start">
                 {getFeedCategory(data.ai_category)}
                 {/* <form action={handleOpenAI}> */}
                 <input hidden name="id" defaultValue={data.id} />
                 <input hidden name="content" defaultValue={data.content} />
 
-                <button type='submit'>
-                    <Ellipsis className="text-gray-600" size={14} />
-                </button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="link" className='p-2 h-6'>
+                            <Ellipsis className="text-gray-600" size={14} />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuGroup>
+                            <DropdownMenuLabel>Options</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={(e) => e.stopPropagation()} className='text-destructive'>
+                                <MessageDialog
+                                    title='Delete Feed'
+                                    message='Are you sure you want to delete this feed? This action can not be undone.'
+                                    onSubmit={onDelete}
+                                    submitLabel='Delete'
+                                />
+
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+
                 {/* </form> */}
 
             </div>
@@ -69,6 +101,62 @@ export default function FeedCard({ data }: { data: Feedback }) {
         </Card>
     );
 }
+
+
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+
+export function MessageDialog({ title, message, onSubmit, submitLabel }: {
+    title?: string,
+    message: string,
+    onSubmit?: () => void,
+    submitLabel?: string,
+}) {
+    const handleSubmit = (e: MouseEvent) => {
+        e.stopPropagation();
+        if (onSubmit) {
+            onSubmit();
+        }
+    }
+
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild >
+                <Button variant='ghost' className='w-full' onClick={(e) => e.stopPropagation()}><Trash2 />Delete</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                    {title && <DialogTitle>{title}</DialogTitle>}
+                    <DialogDescription>
+                        {message}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline" onClick={(e) => e.stopPropagation()}>Cancel</Button>
+                    </DialogClose>
+                    {(onSubmit && submitLabel) &&
+                        <Button onClick={(e) => {
+                            e.stopPropagation();
+                            onSubmit();
+                        }}
+                            type="submit">{submitLabel}
+                        </Button>}
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 function FeedbackDetail({ feedback }: { feedback: Feedback }) {
     const { closePane } = useDetailPane();
@@ -113,7 +201,7 @@ function FeedbackDetail({ feedback }: { feedback: Feedback }) {
 
     const handleResolve = async () => {
         setIsLoading(true);
-        const { error } = await changeStatus(feedback.id, isResolved ? 'open' : 'resolved');
+        const { error } = await changeStatus(feedback.id!, isResolved ? 'open' : 'resolved');
         setIsLoading(false);
 
         if (error) {
