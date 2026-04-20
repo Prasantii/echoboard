@@ -34,7 +34,7 @@ export default function FeedCard({ data, onDelete }: { data: Feedback, onDelete?
     }
 
     return (
-        <Card onClick={handleShowDetail} className="relative p-3 rounded-md gap-y-2">
+        <Card onClick={handleShowDetail} className="relative p-3 rounded-md gap-y-2 h-full">
             <div className="flex flex-row justify-between items-start">
                 {getFeedCategory(data.ai_category)}
                 {/* <form action={handleOpenAI}> */}

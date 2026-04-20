@@ -33,5 +33,5 @@ export const useDetailPane = create<UIState>((set, get) => ({
             set({ isShow: true, detail: detail });
         }
     },
-    closePane: () => set({ isShow: false })
+    closePane: () => set({ isShow: false, detail: undefined })
 }));

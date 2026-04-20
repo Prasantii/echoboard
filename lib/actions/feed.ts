@@ -2,6 +2,11 @@
 import { Feedback } from "@/constants/app_type";
 import { createClient } from "@/utils/supabase/server";
 
+export async function getUser() {
+    const supabase = await createClient();
+    return supabase.auth.getUser();
+}
+
 export async function fetchFeeds({ params }: {
     params?: {
         source?: string | undefined,
@@ -22,7 +27,8 @@ export async function fetchFeeds({ params }: {
         // Fetch data from Supabase server-side
         let query = supabase
             .from('feedback')
-            .select('*');
+            .select('*')
+            .order('inserted_at', { ascending: false });
 
         if (params?.query) query = query.ilike('content', `%${params.query}%`);
 
@@ -96,11 +102,22 @@ export async function changeStatus(id: string, status: string) {
 export async function addNewFeed(newData: Feedback[]) {
     try {
         const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const data: Feedback[] = newData.map((e) => {
+            const { id, ...restOfData } = e;
+            return {
+                ...restOfData,
+                user_id: user?.id,
+            };
+        });
+
+        console.log("THE DATA", data);
 
         // Fetch data from Supabase server-side
         const { data: feedback, error } = await supabase
             .from('feedback')
-            .insert(newData)
+            .insert(data)
             .select();
 
         if (error) {

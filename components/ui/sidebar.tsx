@@ -1,7 +1,7 @@
 "use client"
 import { BugPlayIcon, CircleUser, FileText, LayoutDashboard, LogOut, Menu, Settings, Workflow } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./button";
 import { useSidebar } from "@/store/sidebar.store";
 import { createClient } from "@/utils/supabase/client";
@@ -11,6 +11,25 @@ export default function Sidebar() {
     const supabase = createClient();
 
     const { toggle, isShow } = useSidebar();
+
+    useEffect(() => {
+        const handleResize = () => {
+            // Check if screen is small (less than md breakpoint which is 768px)
+            const isSmallScreen = window.innerWidth < 768;
+
+            // If small screen and sidebar is showing, minimize it
+            if (isSmallScreen && isShow) {
+                toggle();
+            }
+        }
+
+        handleResize();
+
+
+        // window.addEventListener('resize', handleResize);
+        // return () => window.removeEventListener('resize', handleResize);
+
+    }, []);
 
     const fullPath = usePathname();
     const router = useRouter();

@@ -1,3 +1,4 @@
+"use client"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { fetchFeeds } from '@/lib/actions/feed';
@@ -5,78 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, LucideChartBarDecreasing, MessageSquare, TriangleAlert } from 'lucide-react';
 import SentimentOverview from "./components/sentiment_overview";
 import FeedbackCategories from "./components/FeedbackCategories";
+import { useFeedbackStat } from "./feed/hook/use-feedback-stat";
 
 // This is a Next.js Server Component (Async by default)
-export default async function Index() {
+export default function Index() {
+    const { data, isPending, error } = useFeedbackStat();
+    const totalFeedback = data?.totalFeedback ?? 0;
+    const sentimentData = data?.sentimentData ?? [];
+    const avgSentiment = data?.avgSentiment ?? 0;
+    const totalCriticalIssues = data?.totalCriticalIssues ?? 0;
+    const feedback = data?.feedback ?? [];
 
     // Fetch data from Supabase server-side
-    const { feedback, error } = await fetchFeeds({});
+    // const { feedback, error } = await fetchFeeds({});
 
-    const totalFeedback = feedback?.length ?? 0;
-
-    // Sentiments
-    let totalSentiment = 0;
-    let totalPositive = {
-        resolved: 0,
-        total: 0,
+    if (isPending) {
+        return <div>Loading...</div>;
     }
-    let totalNegative = {
-        resolved: 0,
-        total: 0,
-    };
-    let totalNeutral = {
-        resolved: 0,
-        total: 0,
-    }
-
-    feedback?.map((e) => {
-        const score = e.ai_sentiment_score ?? 0;
-        totalSentiment += score;
-        if (e.ai_sentiment_score) {
-            if (score < 4) {
-                totalNegative.total++;
-                if (e.status?.toLowerCase() === 'resolved') {
-                    totalNegative.resolved++;
-                }
-            } else if (score < 8) {
-                totalNeutral.total++;
-                if (e.status?.toLowerCase() === 'resolved') {
-                    totalNeutral.resolved++;
-                }
-
-            } else {
-                totalPositive.total++;
-                if (e.status?.toLowerCase() === 'resolved') {
-                    totalPositive.resolved++;
-                }
-            }
-        }
-    })
-    const avgSentiment = totalSentiment / totalFeedback;
-    const totalNotAnalyzed = totalFeedback - (totalNegative.total + totalNeutral.total + totalPositive.total);
-    const sentimentData = [
-        {
-            sentiment: 'negative', total: totalNegative.total,
-            fill: "var(--color-red-400)",
-        },
-        {
-            sentiment: 'neutral', total: totalNeutral.total,
-            fill: "var(--color-gray-300)",
-        },
-        {
-            sentiment: 'positive', total: totalPositive.total,
-            fill: "var(--color-green-400)",
-        },
-        {
-            sentiment: 'N/A', total: 0, open: totalNotAnalyzed,
-            fill: "var(--color-gray-600)",
-
-        }
-    ]
-
-
-    // Issues
-    const totalCriticalIssues = feedback?.filter((e) => !e.ai_urgency || (e.ai_urgency ?? '').toLowerCase() == 'high').length ?? 0;
 
     if (error) {
         return <div className="p-10 text-red-500">Error loading dashboard. Check console.</div>;
