@@ -22,7 +22,7 @@ const chartConfig = {
 
 export default function SentimentOverview({ data }: { data: SentimentOverviewData[] }) {
     return (
-        <Card>
+        <Card id='sentiment-overview'>
             <CardHeader>
                 <CardTitle>
                     Sentiment Overview

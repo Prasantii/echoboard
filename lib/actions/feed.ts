@@ -13,9 +13,12 @@ export async function fetchFeeds({ params }: {
         sentiment?: string | undefined,
         status?: string | undefined,
         query?: string | undefined,
+        page?: number | undefined,
+        pageSize?: number | undefined,
     }
 }): Promise<{
     feedback: Feedback[] | null,
+    total?: number,
     error: {
         code: number,
         message: string,
@@ -27,8 +30,14 @@ export async function fetchFeeds({ params }: {
         // Fetch data from Supabase server-side
         let query = supabase
             .from('feedback')
-            .select('*')
+            .select('*', { count: 'exact' })
             .order('inserted_at', { ascending: false });
+
+        if (params?.page && params?.pageSize) {
+            const from = (params.page - 1) * params.pageSize;
+            const to = from + params.pageSize - 1;
+            query = query.range(from, to);
+        }
 
         if (params?.query) query = query.ilike('content', `%${params.query}%`);
 
@@ -47,10 +56,13 @@ export async function fetchFeeds({ params }: {
         }
         if (params?.source) query = query.eq('source', params.source);
 
-        const { data: feedback, error } = await query;
+        const { data: feedback, count, error } = await query;
+
+        console.log("FETCHED FEEDBACK", count);
 
         return {
             feedback: feedback,
+            total: count ?? undefined,
             error: error && {
                 code: Number(error?.code),
                 message: error?.message,

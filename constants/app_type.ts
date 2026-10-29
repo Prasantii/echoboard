@@ -15,6 +15,7 @@ export type Feedback = {
     ai_tags?: string[] | undefined,
     ai_urgency?: string | undefined,
     user_id?: string,
+    inserted_at?: string,
 }
 
 export type SentimentOverviewData = {

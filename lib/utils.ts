@@ -18,3 +18,10 @@ export const titleCase = (text?: string) => {
 
   return result.trim();
 };
+
+export const getSentimentLabel: (score?: number) => "N/A" | "NEGATIVE" | "NEUTRAL" | "POSITIVE" = (score?: number) => {
+  if (score === undefined || score === null) return "N/A";
+  if (score < 4) return "NEGATIVE";
+  if (score < 7) return "NEUTRAL";
+  return "POSITIVE";
+}

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Label, Pie, PieChart } from 'recharts';
 import { useState } from 'react';
-import { titleCase } from '@/lib/utils';
+import { getSentimentLabel, titleCase } from '@/lib/utils';
 import { redirect, useRouter } from 'next/navigation';
 import { changeStatus, deleteFeed } from '@/lib/actions/feed';
 import {
@@ -55,13 +55,6 @@ export default function FeedCard({ data, onDelete }: { data: Feedback, onDelete?
                                 onDelete!();
                             }} className='text-destructive'>
                                 <span><Trash2 /></span>{' '}Delete
-                                {/* <MessageDialog
-                                    title='Delete Feed'
-                                    message='Are you sure you want to delete this feed? This action can not be undone.'
-                                    onSubmit={onDelete}
-                                    submitLabel='Delete'
-                                /> */}
-
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
 
@@ -313,14 +306,16 @@ function getStatusChip(status: string | "resolved" | "open") {
 
 
 function SentimentChart({ score }: { score: number | undefined }) {
-    if (!score) return;
+    const sentimentLabel = getSentimentLabel(score);
+
+    if (sentimentLabel === "N/A") return;
     var range = "positive";
     var color = "primary";
 
-    if (score < 4) {
+    if (sentimentLabel === "NEGATIVE") {
         range = 'negative';
         color = 'destructive'
-    } else if (score < 8) {
+    } else if (sentimentLabel === "NEUTRAL") {
         range = 'neutral';
         color = 'gray';
     }

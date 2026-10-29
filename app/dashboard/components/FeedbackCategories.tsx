@@ -37,7 +37,7 @@ export default function FeedbackCategories({ data }: { data: any[] }) {
     console.log("CONFIG", chartConfig);
 
     return (
-        <Card>
+        <Card id='feedback-categories'>
             <CardHeader>
                 <CardTitle>Top Feedback Tags</CardTitle>
             </CardHeader>

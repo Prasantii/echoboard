@@ -7,21 +7,37 @@ import { Heart, LucideChartBarDecreasing, MessageSquare, TriangleAlert } from 'l
 import SentimentOverview from "./components/sentiment_overview";
 import FeedbackCategories from "./components/FeedbackCategories";
 import { useFeedbackStat } from "./feed/hook/use-feedback-stat";
+import { Button } from "@/components/ui/button";
+import { exportFeedbackToPDF } from "@/utils/export-to-pdf";
+import LoadingComponent from "./feed/components/loading";
 
 // This is a Next.js Server Component (Async by default)
 export default function Index() {
-    const { data, isPending, error } = useFeedbackStat();
+    const { data, isLoading, error } = useFeedbackStat();
     const totalFeedback = data?.totalFeedback ?? 0;
     const sentimentData = data?.sentimentData ?? [];
     const avgSentiment = data?.avgSentiment ?? 0;
     const totalCriticalIssues = data?.totalCriticalIssues ?? 0;
     const feedback = data?.feedback ?? [];
 
+    const handleOnExport = () => {
+        exportFeedbackToPDF(feedback, {
+            total: totalFeedback,
+            avgSentiment: avgSentiment,
+            totalCriticalIssues: totalCriticalIssues,
+        },
+            data?.hasAnalyzed ? {
+                sentimentChartId: 'sentiment-overview',
+                feedbackCategoriesId: 'feedback-categories',
+            } : {}
+        );
+    }
+
     // Fetch data from Supabase server-side
     // const { feedback, error } = await fetchFeeds({});
 
-    if (isPending) {
-        return <div>Loading...</div>;
+    if (isLoading) {
+        return <LoadingComponent />;
     }
 
     if (error) {
@@ -36,9 +52,16 @@ export default function Index() {
             </header>
 
             <main className="w-full max-w-7xl">
-                <div className='flex flex-col mb-6'>
-                    <h2 className="text-2xl font-semibold">Product Insights</h2>
-                    <p>Analysis of customer feedback across all channels.</p>
+                <div className="flex flex-row justify-between">
+                    <div className='flex flex-col mb-6'>
+                        <h2 className="text-2xl font-semibold">Product Insights</h2>
+                        <p>Analysis of customer feedback across all channels.</p>
+
+                    </div>
+
+                    <Button onClick={handleOnExport}>
+                        Export Report
+                    </Button>
 
                 </div>
 
@@ -56,7 +79,7 @@ export default function Index() {
                             icon={<Heart fill='var(--color-green-500)' color='transparent' />}
                             title='Avg. Sentiment'
                             subtitle='Satisfaction Score'
-                            total={`${avgSentiment}/10`} />
+                            total={`${avgSentiment.toFixed(2)}/10`} />
 
                         <SummaryCard
                             color="bg-red-500/20"

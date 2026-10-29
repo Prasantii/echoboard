@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import QueryProvider from "@/providers/query-provider";
+import Toast from "@/components/ui/toast";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -31,7 +32,7 @@ export default function RootLayout({
       lang="en"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="h-screen max-h-screen flex flex-col overflow-hidden">
+      <body className="relative h-screen max-h-screen flex flex-col overflow-hidden">
         <QueryProvider>
 
           <div className="flex flex-1 overflow-y-auto">
@@ -43,6 +44,7 @@ export default function RootLayout({
               © ECHOBOARD 2026. All Rights Reserved.
             </div>
           </div>
+          <Toast />
 
         </QueryProvider>
       </body>
